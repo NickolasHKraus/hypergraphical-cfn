@@ -76,3 +76,69 @@ Resources:
       Description: Hypergraphical API Deployment
       RestApiId: !Ref ApiGatewayRestApi
 
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    DependsOn: BuildSpecS3Bucket
+    Properties:
+      Artifacts:
+        Type: NO_ARTIFACTS
+      BadgeEnabled: false
+      Cache:
+        Type: NO_CACHE
+      Description: CodeBuild project for Hypergraphical
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: alpine:latest
+        Type: LINUX_CONTAINER
+      Name: hypergraphical-cb
+      QueuedTimeoutInMinutes: 120
+      ServiceRole: !GetAtt CodeBuildIamRole.Arn
+      Source:
+        Location:
+          !Join
+            - '/'
+            - - !Ref BuildSpecS3Bucket
+              - 'buildspec.zip'
+        Type: S3
+      TimeoutInMinutes: 120
+
+  CodeBuildIamRole:
+    Type: AWS::IAM::Role
+    DependsOn: BuildSpecS3Bucket
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'codebuild.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 's3:getObject'
+                Resource: !Sub '${BuildSpecS3Bucket.Arn}/*'
+        - PolicyName: CloudWatchAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+
+  BuildSpecS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: AuthenticatedRead
+      BucketName: 'hypergraphical-buildspec'
+      VersioningConfiguration:
+        Status: Enabled
