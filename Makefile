@@ -25,10 +25,10 @@ deploy-buildspec: clean zip-buildspec
 
 deploy-stack: validate-stack
 	aws cloudformation deploy \
-	--stack-name test-hypergraphical-cfn \
-	--template-file template.yaml \
+	--stack-name ${STACK_NAME}\
+	--template-file cloudformation/template.yaml \
 	--capabilities CAPABILITY_IAM \
-	--region "${REGION}"; \
+	--region ${REGION}; \
 	EXIT_CODE=$$?; \
 	if [ "$$EXIT_CODE" == 255 ]; then \
 		exit 0; \
@@ -36,7 +36,7 @@ deploy-stack: validate-stack
 
 validate-stack:
 	aws cloudformation validate-template \
-	--template-body file://template.yaml
+	--template-body file://cloudformation/template.yaml
 
 zip-buildspec:
-	zip -FS buildspec.zip buildspec.yml
+	zip -FS buildspec.zip codebuild/buildspec.yml
