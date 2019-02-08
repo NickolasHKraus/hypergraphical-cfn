@@ -1,5 +1,14 @@
 # Unix
 *.swp
 
+# Python
+*.pyc
+
+# Coverage
+.coverage
+cover/
+htmlcov/
+
 # Artifacts
-buildspec.zip
+package/
+*.zip
