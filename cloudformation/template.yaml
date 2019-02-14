@@ -21,6 +21,13 @@ Resources:
       PathPart: 'mock'
       RestApiId: !Ref ApiGatewayRestApi
 
+  ApiGatewayHelloResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: 'hello'
+      RestApiId: !Ref ApiGatewayRestApi
+
   ApiGatewayTranscribeResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -59,6 +66,24 @@ Resources:
           StatusCode: 500
       OperationName: 'mock'
       ResourceId: !Ref ApiGatewayMockResource
+      RestApiId: !Ref ApiGatewayRestApi
+
+  ApiGatewayHelloMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      HttpMethod: POST
+      Integration:
+        ConnectionType: INTERNET
+        Credentials: !GetAtt ApiGatewayIamRole.Arn
+        IntegrationHttpMethod: POST
+        PassthroughBehavior: WHEN_NO_MATCH
+        TimeoutInMillis: 29000
+        Type: AWS_PROXY
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaFunction.Arn}/invocations'
+      OperationName: 'hello'
+      ResourceId: !Ref ApiGatewayHelloResource
       RestApiId: !Ref ApiGatewayRestApi
 
   ApiGatewayTranscribeMethod:
